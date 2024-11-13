@@ -131,10 +131,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: src/Nethermind.Crypto.SecP256k1/runtimes
+          path: src/Temnij.Crypto.SecP256k1/runtimes
 
       - name: Move artifacts
-        working-directory: src/Nethermind.Crypto.SecP256k1/runtimes
+        working-directory: src/Temnij.Crypto.SecP256k1/runtimes
         run: |
           mv -f linux-arm64/libsecp256k1.so linux-arm64/native/libsecp256k1.so
           mv -f linux-x64/libsecp256k1.so linux-x64/native/libsecp256k1.so
@@ -150,16 +150,16 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        working-directory: src/Nethermind.Crypto.SecP256k1
+        working-directory: src/Temnij.Crypto.SecP256k1
         run: dotnet build -c ${{ env.BUILD_CONFIG }} --no-restore
 
       - name: Test
-        working-directory: src/Nethermind.Crypto.SecP256k1.Test
+        working-directory: src/Temnij.Crypto.SecP256k1.Test
         run: dotnet test -c ${{ env.BUILD_CONFIG }} --no-restore
 
       - name: Publish
         if: ${{ inputs.publish }}
-        working-directory: src/Nethermind.Crypto.SecP256k1
+        working-directory: src/Temnij.Crypto.SecP256k1
         run: |
           dotnet pack -c ${{ env.BUILD_CONFIG }} --no-build
           dotnet nuget push bin/${{ env.BUILD_CONFIG }}/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
