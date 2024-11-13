@@ -149,7 +149,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: src
-        run: dotnet restore Temnij.Crypto.SecP256k1.slnx
+        run: dotnet restore
 
       - name: Build
         working-directory: src/Temnij.Crypto.SecP256k1

@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35417.141
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Temnij.Crypto.SecP256k1.Test", "Temnij.Crypto.SecP256k1.Test\Temnij.Crypto.SecP256k1.Test.csproj", "{A925C5B9-E39E-1D0C-15FC-E9F3AF714D12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Temnij.Crypto.SecP256k1", "Temnij.Crypto.SecP256k1\Temnij.Crypto.SecP256k1.csproj", "{6323DB5E-4274-FF4E-F7E9-65E747294FEE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{089100B1-113F-4E66-888A-E83F3999EAFD}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A925C5B9-E39E-1D0C-15FC-E9F3AF714D12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A925C5B9-E39E-1D0C-15FC-E9F3AF714D12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A925C5B9-E39E-1D0C-15FC-E9F3AF714D12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A925C5B9-E39E-1D0C-15FC-E9F3AF714D12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6323DB5E-4274-FF4E-F7E9-65E747294FEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6323DB5E-4274-FF4E-F7E9-65E747294FEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6323DB5E-4274-FF4E-F7E9-65E747294FEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6323DB5E-4274-FF4E-F7E9-65E747294FEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
