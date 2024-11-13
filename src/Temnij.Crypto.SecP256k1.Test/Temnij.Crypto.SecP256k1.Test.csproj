@@ -15,6 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Nethermind.Crypto.SecP256k1\Temnij.Crypto.SecP256k1.csproj" />
+    <ProjectReference Include="..\Temnij.Crypto.SecP256k1\Temnij.Crypto.SecP256k1.csproj" />
   </ItemGroup>
 </Project>
