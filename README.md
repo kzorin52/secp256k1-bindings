@@ -7,5 +7,5 @@ C# bindings for the Bitcoin Core [libsecp256k1](https://github.com/bitcoin-core/
 
 ### Build
 
-Files in the `src/Temnij.Crypto.SecP256k1/runtimes` directory are pre-built.
-Before building the project, these files should be replaced with the self-built libsecp256k1 binaries.
+Files in the `src/Temnij.Crypto.SecP256k1/runtimes` directory are empty.
+Before building the project, these files should be replaced with the libsecp256k1 binaries.
