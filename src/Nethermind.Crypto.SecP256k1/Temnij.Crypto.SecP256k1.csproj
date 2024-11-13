@@ -7,13 +7,12 @@
     <Description>C# bindings for the Bitcoin Core libsecp256k1 library</Description>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
-    <PackageId>Nethermind.Crypto.SecP256k1</PackageId>
+    <PackageId>Temnij.Crypto.SecP256k1</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://nethermind.io</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>cryptography elliptic-curve secp256k1</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/nethermindeth/secp256k1-bindings</RepositoryUrl>
+    <RepositoryUrl>https://github.com/kzorin52/secp256k1-bindings</RepositoryUrl>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 

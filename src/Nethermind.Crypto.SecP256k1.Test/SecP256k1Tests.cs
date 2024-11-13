@@ -1,11 +1,8 @@
-// SPDX-FileCopyrightText: 2023 Demerzel Solutions Limited
-// SPDX-License-Identifier: MIT
-
 using System;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Nethermind.Crypto.Secp256k1.Test;
+namespace Temnij.Crypto.Secp256k1.Test;
 
 [TestFixture]
 public class SecP256k1Tests
