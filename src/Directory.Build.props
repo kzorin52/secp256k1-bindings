@@ -11,7 +11,7 @@
   <PropertyGroup Label="ProductInfo">
     <Authors>Temnij, Nethermind</Authors>
     <SourceRevisionId Condition="'$(Commit)' != ''">$(Commit.Substring(0, 8))</SourceRevisionId>
-    <VersionPrefix>1.3.0</VersionPrefix>
+    <VersionPrefix>1.4.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
   </PropertyGroup>
 

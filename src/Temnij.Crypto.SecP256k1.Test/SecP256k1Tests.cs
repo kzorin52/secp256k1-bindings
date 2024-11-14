@@ -11,7 +11,7 @@ public class SecP256k1Tests
     public void Does_not_allow_empty_key()
     {
         byte[] privateKey = new byte[32];
-        bool result = SecP256k1.VerifyPrivateKey(privateKey);
+        bool result = SecP256k1Native.VerifyPrivateKey(privateKey);
         Assert.That(result, Is.False);
     }
 
@@ -25,7 +25,7 @@ public class SecP256k1Tests
     {
         byte[] privateKey = new byte[32];
         privateKey[0] = 1;
-        bool result = SecP256k1.VerifyPrivateKey(privateKey);
+        bool result = SecP256k1Native.VerifyPrivateKey(privateKey);
         Assert.That(result);
     }
 
@@ -34,7 +34,7 @@ public class SecP256k1Tests
     {
         byte[] privateKey = new byte[32];
         privateKey[0] = 1;
-        byte[]? publicKey = SecP256k1.GetPublicKey(privateKey, true);
+        byte[]? publicKey = SecP256k1.GetPublicKey(privateKey, SecP256k1Native.ECType.Compressed);
         Assert.That(publicKey!, Has.Length.EqualTo(33));
     }
 
@@ -43,7 +43,7 @@ public class SecP256k1Tests
     {
         byte[] privateKey = new byte[32];
         privateKey[0] = 1;
-        byte[]? publicKey = SecP256k1.GetPublicKey(privateKey, false);
+        byte[]? publicKey = SecP256k1.GetPublicKey(privateKey, SecP256k1Native.ECType.Uncompressed);
         Assert.That(publicKey!, Has.Length.EqualTo(65));
     }
 
@@ -71,7 +71,7 @@ public class SecP256k1Tests
         messageHash[0] = 1;
         byte[]? signature = SecP256k1.SignCompact(messageHash, privateKey, out int recoveryId);
         byte[] recovered = new byte[33];
-        bool result = SecP256k1.RecoverKeyFromCompact(recovered, messageHash, signature, recoveryId, true);
+        bool result = SecP256k1.RecoverKeyFromCompact(recovered, messageHash, signature, recoveryId, SecP256k1Native.ECType.Compressed);
         result.Should().BeTrue();
     }
 
@@ -104,7 +104,7 @@ public class SecP256k1Tests
         // Compute a shared key.
         byte[] publicKey = Convert.FromHexString(publicKeyStr);
         byte[] privateKey = Convert.FromHexString(privateKeyStr);
-        byte[] result = SecP256k1.EcdhSerialized(publicKey, privateKey);
+        byte[] result = SecP256k1.EcdhSerialized(publicKey, privateKey)!;
         Assert.That(Convert.ToHexString(result).ToLowerInvariant(), Is.EqualTo(expectedSecretStr));
     }
 
@@ -117,7 +117,7 @@ public class SecP256k1Tests
         messageHash[0] = 1;
         byte[]? signature = SecP256k1.SignCompact(messageHash, privateKey, out int recoveryId);
         byte[] recovered = new byte[65];
-        SecP256k1.RecoverKeyFromCompact(recovered, messageHash, signature, recoveryId, false);
+        SecP256k1.RecoverKeyFromCompact(recovered, messageHash, signature, recoveryId, SecP256k1Native.ECType.Uncompressed);
         Assert.That(recovered, Has.Length.EqualTo(65));
     }
 }
