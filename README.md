@@ -5,6 +5,10 @@
 
 C# bindings for the Bitcoin Core [libsecp256k1](https://github.com/bitcoin-core/secp256k1) library.
 
+### Fork description
+- [x] Implemented zero-alloc methods
+- [x] Fixed bugs
+
 ### Build
 
 Files in the `src/Temnij.Crypto.SecP256k1/runtimes` directory are empty.
