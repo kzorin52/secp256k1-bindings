@@ -143,9 +143,9 @@ jobs:
           mv -f win-x64/secp256k1.dll win-x64/native/secp256k1.dll
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Install dependencies
         working-directory: src
