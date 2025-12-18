@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path="Directory.Build.props" />
-  </Folder>
   <Project Path="Temnij.Crypto.SecP256k1.Test/Temnij.Crypto.SecP256k1.Test.csproj" />
   <Project Path="Temnij.Crypto.SecP256k1/Temnij.Crypto.SecP256k1.csproj" />
 </Solution>

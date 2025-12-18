@@ -7,7 +7,8 @@ namespace Temnij.Crypto;
 // ReSharper disable once InconsistentNaming
 public static class SecP256k1
 {
-    public static bool GetPublicKey(Span<byte> serializedPublicKey, ReadOnlySpan<byte> privateKey, SecP256k1Native.ECType type)
+    public static bool GetPublicKey(Span<byte> serializedPublicKey, ReadOnlySpan<byte> privateKey,
+        SecP256k1Native.ECType type)
     {
         Span<byte> publicKey = stackalloc byte[SecP256k1Native.PublicKeySize];
         if (!SecP256k1Native.CreatePublicKey(publicKey, privateKey)) return false;
@@ -17,7 +18,8 @@ public static class SecP256k1
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[]? GetPublicKey(ReadOnlySpan<byte> privateKey, SecP256k1Native.ECType type) // Compatable with old API
+    public static byte[]?
+        GetPublicKey(ReadOnlySpan<byte> privateKey, SecP256k1Native.ECType type) // Compatable with old API
     {
         var buffer = new byte[SecP256k1Native.GetSerializedPublicKeySize(type)];
 
@@ -26,7 +28,8 @@ public static class SecP256k1
             : null;
     }
 
-    public static bool SignCompact(Span<byte> compactSignature, ReadOnlySpan<byte> messageHash, ReadOnlySpan<byte> privateKey, out int recoveryId)
+    public static bool SignCompact(Span<byte> compactSignature, ReadOnlySpan<byte> messageHash,
+        ReadOnlySpan<byte> privateKey, out int recoveryId)
     {
         Span<byte> recoverableSignature = stackalloc byte[SecP256k1Native.RecoverableSignatureSize];
         recoveryId = 0;
@@ -38,7 +41,9 @@ public static class SecP256k1
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[]? SignCompact(ReadOnlySpan<byte> messageHash, ReadOnlySpan<byte> privateKey, out int recoveryId) // Compatable with old API
+    public static byte[]?
+        SignCompact(ReadOnlySpan<byte> messageHash, ReadOnlySpan<byte> privateKey,
+            out int recoveryId) // Compatable with old API
     {
         var buffer = new byte[SecP256k1Native.CompactSignatureSize];
         recoveryId = 0;
@@ -48,15 +53,18 @@ public static class SecP256k1
             : null;
     }
 
-    public static bool RecoverKeyFromCompact(Span<byte> output, ReadOnlySpan<byte> messageHash, ReadOnlySpan<byte> compactSignature, int recoveryId, SecP256k1Native.ECType type)
+    public static bool RecoverKeyFromCompact(Span<byte> output, ReadOnlySpan<byte> messageHash,
+        ReadOnlySpan<byte> compactSignature, int recoveryId, SecP256k1Native.ECType type)
     {
         Span<byte> recoverableSignature = stackalloc byte[SecP256k1Native.RecoverableSignatureSize];
         Span<byte> publicKey = stackalloc byte[SecP256k1Native.PublicKeySize];
 
         var expectedLength = SecP256k1Native.GetSerializedPublicKeySize(type);
-        if (output.Length != expectedLength) throw new ArgumentException($"{nameof(output)} length should be {expectedLength}");
+        if (output.Length != expectedLength)
+            throw new ArgumentException($"{nameof(output)} length should be {expectedLength}");
 
-        if (!SecP256k1Native.ParseRecoverableCompactSignature(recoverableSignature, compactSignature, recoveryId)) return false;
+        if (!SecP256k1Native.ParseRecoverableCompactSignature(recoverableSignature, compactSignature, recoveryId))
+            return false;
         if (!SecP256k1Native.Recover(publicKey, recoverableSignature, messageHash)) return false;
         SecP256k1Native.SerializePublicKey(output, publicKey, type);
 
