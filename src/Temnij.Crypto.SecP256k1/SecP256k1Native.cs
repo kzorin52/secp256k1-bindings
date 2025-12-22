@@ -70,7 +70,14 @@ public static partial class SecP256k1Native
                 throw new PlatformNotSupportedException();
 
             var arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
-            return NativeLibrary.Load($"runtimes/{platform}-{arch}/native/{name}", context, DllImportSearchPath.AssemblyDirectory);
+            var runtimesPath = $"runtimes/{platform}-{arch}/native/{name}";
+
+            // Try looking in the runtimes folder (Portable publish / Dev environment)
+            if (NativeLibrary.TryLoad(runtimesPath, context, DllImportSearchPath.AssemblyDirectory, out var handle))
+                return handle;
+
+            // Fallback to looking in the root directory (RID-specific publish, e.g. win-x64)
+            return NativeLibrary.Load(name, context, DllImportSearchPath.AssemblyDirectory);
         };
     }
 
