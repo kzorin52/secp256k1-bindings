@@ -296,13 +296,6 @@ public static partial class SecP256k1Native
         } == 1;
     }
 
-    public static bool XOnlyTweakAdd(Span<byte> publicKey, ReadOnlySpan<byte> xOnlyPubkey, ReadOnlySpan<byte> tweak)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(tweak.Length, 32, nameof(tweak));
-
-        return secp256k1_xonly_pubkey_tweak_add(Context, publicKey, xOnlyPubkey, tweak) == 1;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void TaggedSHA256(Span<byte> output, ReadOnlySpan<byte> tag, ReadOnlySpan<byte> message)
     {
@@ -374,6 +367,110 @@ public static partial class SecP256k1Native
         return secp256k1_ecdsa_recover(Context, publicKey, recoverableSig, messageHash) == 1;
     }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool ParseXOnlyPublicKey(Span<byte> xOnlyPubkey, ReadOnlySpan<byte> serialized32)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(serialized32.Length, 32, nameof(serialized32));
+
+        return secp256k1_xonly_pubkey_parse(Context, xOnlyPubkey, serialized32) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void SerializeXOnlyPublicKey(Span<byte> serialized32, ReadOnlySpan<byte> xOnlyPubkey)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(serialized32.Length, 32, nameof(serialized32));
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey));
+
+        secp256k1_xonly_pubkey_serialize(Context, serialized32, xOnlyPubkey);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CompareXOnlyPublicKeys(ReadOnlySpan<byte> xOnlyPubkey1, ReadOnlySpan<byte> xOnlyPubkey2)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey1.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey1));
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey2.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey2));
+
+        return secp256k1_xonly_pubkey_cmp(Context, xOnlyPubkey1, xOnlyPubkey2);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool ConvertPublicKeyToXOnly(Span<byte> xOnlyPubkey, out int pkParity, ReadOnlySpan<byte> pubkey)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(pubkey.Length, PublicKeySize, nameof(pubkey));
+
+        return secp256k1_xonly_pubkey_from_pubkey(Context, xOnlyPubkey, out pkParity, pubkey) == 1;
+    }
+
+    /// <summary>
+    /// Tweaks an x-only public key. Returns a normal public key (not x-only).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool XOnlyTweakAdd(Span<byte> publicKey, ReadOnlySpan<byte> xOnlyPubkey, ReadOnlySpan<byte> tweak)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(publicKey.Length, PublicKeySize, nameof(publicKey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(tweak.Length, 32, nameof(tweak));
+
+        return secp256k1_xonly_pubkey_tweak_add(Context, publicKey, xOnlyPubkey, tweak) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool CheckXOnlyTweakAdd(ReadOnlySpan<byte> tweakedPubkey32, int tweakedPkParity, ReadOnlySpan<byte> internalXOnlyPubkey, ReadOnlySpan<byte> tweak)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(tweakedPubkey32.Length, 32, nameof(tweakedPubkey32));
+        ArgumentOutOfRangeException.ThrowIfLessThan(internalXOnlyPubkey.Length, XOnlyPublicKeySize, nameof(internalXOnlyPubkey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(tweak.Length, 32, nameof(tweak));
+
+        return secp256k1_xonly_pubkey_tweak_add_check(Context, tweakedPubkey32, tweakedPkParity, internalXOnlyPubkey, tweak) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool CreateKeyPair(Span<byte> keyPair, ReadOnlySpan<byte> privateKey)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(keyPair.Length, KeyPairSize, nameof(keyPair));
+        ArgumentOutOfRangeException.ThrowIfLessThan(privateKey.Length, PrivateKeySize, nameof(privateKey));
+
+        return secp256k1_keypair_create(Context, keyPair, privateKey) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool GetSecretFromKeyPair(Span<byte> privateKey, ReadOnlySpan<byte> keyPair)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(privateKey.Length, PrivateKeySize, nameof(privateKey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(keyPair.Length, KeyPairSize, nameof(keyPair));
+
+        return secp256k1_keypair_sec(Context, privateKey, keyPair) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool GetPublicKeyFromKeyPair(Span<byte> publicKey, ReadOnlySpan<byte> keyPair)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(publicKey.Length, PublicKeySize, nameof(publicKey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(keyPair.Length, KeyPairSize, nameof(keyPair));
+
+        return secp256k1_keypair_pub(Context, publicKey, keyPair) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool GetXOnlyPublicKeyFromKeyPair(Span<byte> xOnlyPubkey, out int pkParity, ReadOnlySpan<byte> keyPair)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(xOnlyPubkey.Length, XOnlyPublicKeySize, nameof(xOnlyPubkey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(keyPair.Length, KeyPairSize, nameof(keyPair));
+
+        return secp256k1_keypair_xonly_pub(Context, xOnlyPubkey, out pkParity, keyPair) == 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool XOnlyTweakKeyPair(Span<byte> keyPair, ReadOnlySpan<byte> tweak)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(keyPair.Length, KeyPairSize, nameof(keyPair));
+        ArgumentOutOfRangeException.ThrowIfLessThan(tweak.Length, 32, nameof(tweak));
+
+        return secp256k1_keypair_xonly_tweak_add(Context, keyPair, tweak) == 1;
+    }
+
     #endregion
 
     #region FLAG CONSTANTS
@@ -398,6 +495,9 @@ public static partial class SecP256k1Native
     public const int SignatureSize = 64;
     public const int CompactSignatureSize = 64;
     public const int RecoverableSignatureSize = 65;
+
+    public const int XOnlyPublicKeySize = 64; // Internal opaque struct size
+    public const int KeyPairSize = 96;        // Internal opaque struct size
 
     #endregion
 
@@ -501,9 +601,40 @@ public static partial class SecP256k1Native
     [LibraryImport(LibraryName)]
     private static partial int secp256k1_ecdsa_recover(nint ctx, Span<byte> pubkey, ReadOnlySpan<byte> sig, ReadOnlySpan<byte> msghash32);
 
+    /* xonly */
+
     [LibraryImport(LibraryName)]
-    private static partial int secp256k1_xonly_pubkey_tweak_add(nint ctx, Span<byte> outputPubkey,
-        ReadOnlySpan<byte> internalPubkey, ReadOnlySpan<byte> tweak);
+    private static partial int secp256k1_xonly_pubkey_parse(nint ctx, Span<byte> pubkey, ReadOnlySpan<byte> input32);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_xonly_pubkey_serialize(nint ctx, Span<byte> output32, ReadOnlySpan<byte> pubkey);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_xonly_pubkey_cmp(nint ctx, ReadOnlySpan<byte> pk1, ReadOnlySpan<byte> pk2);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_xonly_pubkey_from_pubkey(nint ctx, Span<byte> xonlyPubkey, out int pkParity, ReadOnlySpan<byte> pubkey);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_xonly_pubkey_tweak_add(nint ctx, Span<byte> outputPubkey, ReadOnlySpan<byte> internalPubkey, ReadOnlySpan<byte> tweak);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_xonly_pubkey_tweak_add_check(nint ctx, ReadOnlySpan<byte> tweakedPubkey32, int tweakedPkParity, ReadOnlySpan<byte> internalPubkey, ReadOnlySpan<byte> tweak32);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_keypair_create(nint ctx, Span<byte> keypair, ReadOnlySpan<byte> seckey);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_keypair_sec(nint ctx, Span<byte> seckey, ReadOnlySpan<byte> keypair);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_keypair_pub(nint ctx, Span<byte> pubkey, ReadOnlySpan<byte> keypair);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_keypair_xonly_pub(nint ctx, Span<byte> pubkey, out int pkParity, ReadOnlySpan<byte> keypair);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_keypair_xonly_tweak_add(nint ctx, Span<byte> keypair, ReadOnlySpan<byte> tweak32);
 
     #endregion
 
