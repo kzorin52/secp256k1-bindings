@@ -296,6 +296,13 @@ public static partial class SecP256k1Native
         } == 1;
     }
 
+    public static bool XOnlyTweakAdd(Span<byte> publicKey, ReadOnlySpan<byte> xOnlyPubkey, ReadOnlySpan<byte> tweak)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(tweak.Length, 32, nameof(tweak));
+
+        return secp256k1_xonly_pubkey_tweak_add(Context, publicKey, xOnlyPubkey, tweak) == 1;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void TaggedSHA256(Span<byte> output, ReadOnlySpan<byte> tag, ReadOnlySpan<byte> message)
     {
@@ -493,6 +500,10 @@ public static partial class SecP256k1Native
 
     [LibraryImport(LibraryName)]
     private static partial int secp256k1_ecdsa_recover(nint ctx, Span<byte> pubkey, ReadOnlySpan<byte> sig, ReadOnlySpan<byte> msghash32);
+
+    [LibraryImport(LibraryName)]
+    private static partial int secp256k1_xonly_pubkey_tweak_add(nint ctx, Span<byte> outputPubkey,
+        ReadOnlySpan<byte> internalPubkey, ReadOnlySpan<byte> tweak);
 
     #endregion
 
