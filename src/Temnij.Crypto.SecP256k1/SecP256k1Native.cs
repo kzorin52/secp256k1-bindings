@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -70,11 +71,17 @@ public static partial class SecP256k1Native
                 throw new PlatformNotSupportedException();
 
             var arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
-            var runtimesPath = $"runtimes/{platform}-{arch}/native/{name}";
 
-            // Try looking in the runtimes folder (Portable publish / Dev environment)
-            if (NativeLibrary.TryLoad(runtimesPath, context, DllImportSearchPath.AssemblyDirectory, out var handle))
-                return handle;
+            // Try looking in the runtimes folder (Portable publish / Dev environment).
+            // Anchor to the assembly location: relative paths resolve against the process CWD,
+            // which breaks under custom load contexts (e.g. test hosts).
+            var assemblyDir = Path.GetDirectoryName(assembly.Location);
+            if (!string.IsNullOrEmpty(assemblyDir))
+            {
+                var runtimesPath = Path.Combine(assemblyDir, "runtimes", $"{platform}-{arch}", "native", name);
+                if (NativeLibrary.TryLoad(runtimesPath, out var handle))
+                    return handle;
+            }
 
             // Fallback to looking in the root directory (RID-specific publish, e.g. win-x64)
             return NativeLibrary.Load(name, context, DllImportSearchPath.AssemblyDirectory);
@@ -172,6 +179,9 @@ public static partial class SecP256k1Native
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ComparePublicKeys(ReadOnlySpan<byte> publicKey1, ReadOnlySpan<byte> publicKey2)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(publicKey1.Length, PublicKeySize, nameof(publicKey1));
+        ArgumentOutOfRangeException.ThrowIfLessThan(publicKey2.Length, PublicKeySize, nameof(publicKey2));
+
         return secp256k1_ec_pubkey_cmp(Context, publicKey1, publicKey2);
     }
 
@@ -184,23 +194,20 @@ public static partial class SecP256k1Native
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe bool ParseDerSignature(Span<byte> signature, ReadOnlySpan<char> raw)
+    public static bool ParseDerSignature(Span<byte> signature, ReadOnlySpan<byte> raw)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(signature.Length, SignatureSize, nameof(signature));
-        fixed (char* ptr = raw) return secp256k1_ecdsa_signature_parse_der(Context, signature, ptr, (nuint)raw.Length) == 1;
+        return secp256k1_ecdsa_signature_parse_der(Context, signature, raw, (nuint)raw.Length) == 1;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe int SerializeDerSignature(Span<char> output, ReadOnlySpan<byte> signature)
+    public static int SerializeDerSignature(Span<byte> output, ReadOnlySpan<byte> signature)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(signature.Length, SignatureSize, nameof(signature));
 
         var len = (nuint)output.Length;
-        fixed (char* ptr = output)
-        {
-            if (secp256k1_ecdsa_signature_serialize_der(Context, ptr, ref len, signature) == 0)
-                return 0;
-        }
+        if (secp256k1_ecdsa_signature_serialize_der(Context, output, ref len, signature) == 0)
+            return 0;
 
         return (int)len;
     }
@@ -277,6 +284,8 @@ public static partial class SecP256k1Native
     public static bool Tweak(Span<byte> key, ReadOnlySpan<byte> tweak, KeyType type, TweakMode mode)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(tweak.Length, 32, nameof(tweak));
+        ArgumentOutOfRangeException.ThrowIfLessThan(key.Length,
+            type == KeyType.PrivateKey ? PrivateKeySize : PublicKeySize, nameof(key));
 
         return mode switch
         {
@@ -301,6 +310,28 @@ public static partial class SecP256k1Native
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(output.Length, 32, nameof(output));
         secp256k1_tagged_sha256(Context, output, tag, (nuint)tag.Length, message, (nuint)message.Length);
+    }
+
+    /// <summary>
+    ///     ECDH whose "hash" is simply the raw X coordinate of the shared point (first 32 bytes of
+    ///     <paramref name="output" />). Allocation- and marshaling-free, unlike the delegate-based overload.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool ECDHRawX(Span<byte> output, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(output.Length, 32, nameof(output));
+        ArgumentOutOfRangeException.ThrowIfLessThan(publicKey.Length, PublicKeySize, nameof(publicKey));
+        ArgumentOutOfRangeException.ThrowIfLessThan(privateKey.Length, PrivateKeySize, nameof(privateKey));
+
+        return secp256k1_ecdh(Context, output, publicKey, privateKey,
+            (nint)(delegate* unmanaged[Cdecl]<void*, void*, void*, nint, int>)&CopyXCallback, 0) == 1;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+    private static unsafe int CopyXCallback(void* output, void* x32, void* y32, nint data)
+    {
+        Unsafe.CopyBlockUnaligned(output, x32, 32);
+        return 1;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -532,10 +563,10 @@ public static partial class SecP256k1Native
     private static partial int secp256k1_ecdsa_signature_parse_compact(nint ctx, Span<byte> sig, ReadOnlySpan<byte> input64);
 
     [LibraryImport(LibraryName)]
-    private static unsafe partial int secp256k1_ecdsa_signature_parse_der(nint ctx, Span<byte> sig, char* input, nuint inputlen);
+    private static partial int secp256k1_ecdsa_signature_parse_der(nint ctx, Span<byte> sig, ReadOnlySpan<byte> input, nuint inputlen);
 
     [LibraryImport(LibraryName)]
-    private static unsafe partial int secp256k1_ecdsa_signature_serialize_der(nint ctx, char* output, ref nuint outputLen, ReadOnlySpan<byte> sig);
+    private static partial int secp256k1_ecdsa_signature_serialize_der(nint ctx, Span<byte> output, ref nuint outputLen, ReadOnlySpan<byte> sig);
 
     [LibraryImport(LibraryName)]
     private static partial void secp256k1_ecdsa_signature_serialize_compact(IntPtr ctx, Span<byte> output64, ReadOnlySpan<byte> sig);

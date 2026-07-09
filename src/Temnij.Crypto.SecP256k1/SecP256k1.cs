@@ -71,20 +71,9 @@ public static class SecP256k1
         return true;
     }
 
-    public static unsafe bool Ecdh(Span<byte> agreement, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
+    public static bool Ecdh(Span<byte> agreement, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
     {
-        var outputLength = agreement.Length;
-        return SecP256k1Native.ECDH(agreement, publicKey, privateKey, HashFunction);
-
-        // TODO: should probably do that only once
-        int HashFunction(void* output, void* x, void* _, IntPtr __)
-        {
-            Span<byte> outputSpan = new(output, outputLength);
-            Span<byte> xSpan = new(x, 32);
-            xSpan.CopyTo(outputSpan);
-
-            return 1;
-        }
+        return SecP256k1Native.ECDHRawX(agreement, publicKey, privateKey);
     }
 
     public static bool EcdhSerialized(Span<byte> output, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
@@ -95,9 +84,8 @@ public static class SecP256k1
         publicKey.CopyTo(uncompressedPrefixedPublicKey[1..]);
 
         if (!SecP256k1Native.ParsePublicKey(key, uncompressedPrefixedPublicKey)) return false;
-        Ecdh(output, key, privateKey);
 
-        return true;
+        return Ecdh(output, key, privateKey);
     }
 
     public static byte[]? EcdhSerialized(ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)

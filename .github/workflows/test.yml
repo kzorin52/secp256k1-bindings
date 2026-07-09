@@ -44,7 +44,13 @@ jobs:
           rm -rf build
           cmake -S . -B build \
             -D CMAKE_BUILD_TYPE=Release \
+            -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
             -D SECP256K1_ENABLE_MODULE_RECOVERY=ON \
+            -D SECP256K1_ECMULT_GEN_KB=86 \
+            -D SECP256K1_BUILD_TESTS=OFF \
+            -D SECP256K1_BUILD_BENCHMARK=OFF \
+            -D SECP256K1_BUILD_EXHAUSTIVE_TESTS=OFF \
+            ${{ matrix.arch == 'x64' && '-D CMAKE_C_FLAGS=-march=x86-64-v2' || '' }} \
             ${{ matrix.arch == 'arm64' && '-D CMAKE_C_COMPILER=aarch64-linux-gnu-gcc-14 -D CMAKE_SYSTEM_NAME=Linux -D CMAKE_SYSTEM_PROCESSOR=aarch64' || '' }}
           cmake --build build
 
@@ -78,8 +84,14 @@ jobs:
           rm -rf build
           cmake -S . -B build \
             -D CMAKE_BUILD_TYPE=Release \
+            -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
             -D CMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-            -D SECP256K1_ENABLE_MODULE_RECOVERY=ON
+            -D SECP256K1_ENABLE_MODULE_RECOVERY=ON \
+            -D SECP256K1_ECMULT_GEN_KB=86 \
+            -D SECP256K1_BUILD_TESTS=OFF \
+            -D SECP256K1_BUILD_BENCHMARK=OFF \
+            -D SECP256K1_BUILD_EXHAUSTIVE_TESTS=OFF \
+            ${{ matrix.arch == 'x86_64' && '-D CMAKE_C_FLAGS=-march=x86-64-v2' || '' }}
           cmake --build build
 
       - name: Upload artifact
@@ -106,15 +118,24 @@ jobs:
         shell: pwsh
         run: |
           if (Test-Path build) { rd -Recurse build }
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 `
-            -D SECP256K1_ENABLE_MODULE_RECOVERY=ON
-          cmake --build build --config Release
-          ls build/bin/Release/*.dll | rni -NewName secp256k1.dll
+          # clang instead of MSVC: it has __int128, giving libsecp256k1 a much faster 64-bit field/scalar path
+          cmake -S . -B build -G Ninja `
+            -D CMAKE_C_COMPILER=clang `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON `
+            -D CMAKE_C_FLAGS=-march=x86-64-v2 `
+            -D SECP256K1_ENABLE_MODULE_RECOVERY=ON `
+            -D SECP256K1_ECMULT_GEN_KB=86 `
+            -D SECP256K1_BUILD_TESTS=OFF `
+            -D SECP256K1_BUILD_BENCHMARK=OFF `
+            -D SECP256K1_BUILD_EXHAUSTIVE_TESTS=OFF
+          cmake --build build
+          ls build/bin/*.dll | rni -NewName secp256k1.dll
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
           name: win-x64
-          path: secp256k1/build/bin/Release/secp256k1.dll
+          path: secp256k1/build/bin/secp256k1.dll
           retention-days: ${{ env.RETENTION }}
           if-no-files-found: error
 

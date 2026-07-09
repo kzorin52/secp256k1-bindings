@@ -11,8 +11,7 @@
 
   <PropertyGroup Label="ProductInfo">
     <Authors>Temnij, Nethermind</Authors>
-    <VersionPrefix>1.5.3</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
+    <Version>1.5.4</Version>
   </PropertyGroup>
 
   <PropertyGroup>
